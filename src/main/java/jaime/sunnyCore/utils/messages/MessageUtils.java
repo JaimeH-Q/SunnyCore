@@ -1,4 +1,4 @@
-package jaime.uno.utils;
+package jaime.sunnyCore.utils.messages;
 
 import net.md_5.bungee.api.ChatColor;
 

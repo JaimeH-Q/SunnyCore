@@ -1,8 +1,7 @@
-package jaime.uno.utils.placeholders;
+package jaime.sunnyCore.utils.messages.placeholders;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public interface PlaceholderReplacer {
 
@@ -13,5 +12,6 @@ public interface PlaceholderReplacer {
         }
         return stringList;
     }
+
     String replaceString(String string);
 }

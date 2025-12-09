@@ -1,4 +1,4 @@
-package jaime.uno.utils;
+package jaime.sunnyCore.utils;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.util.Base64;
 import java.util.Objects;
 
-import static jaime.uno.utils.MessageUtils.colorize;
+import static jaime.sunnyCore.utils.messages.MessageUtils.colorize;
 
 public class ItemUtils {
     public static void replaceName(ItemStack item, String rawName){

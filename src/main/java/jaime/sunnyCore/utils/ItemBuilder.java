@@ -1,6 +1,10 @@
     package jaime.sunnyCore.utils;
 
     import com.destroystokyo.paper.profile.PlayerProfile;
+    import jaime.sunnyCore.logger.DebugablePlugin;
+    import jaime.sunnyCore.logger.WarnLogger;
+    import jaime.sunnyCore.utils.messages.placeholders.EmptyItemPlaceholderReplacer;
+    import jaime.sunnyCore.utils.messages.placeholders.PlaceholderReplacer;
     import net.kyori.adventure.text.Component;
     import net.kyori.adventure.text.TextComponent;
     import net.kyori.adventure.text.format.TextDecoration;
@@ -11,6 +15,7 @@
     import org.bukkit.inventory.ItemStack;
     import org.bukkit.inventory.meta.ItemMeta;
     import org.bukkit.inventory.meta.SkullMeta;
+    import org.bukkit.plugin.java.JavaPlugin;
     import org.bukkit.profile.PlayerTextures;
     import org.jetbrains.annotations.Nullable;
 
@@ -23,35 +28,40 @@
     import java.util.regex.Matcher;
     import java.util.regex.Pattern;
 
+    import static jaime.sunnyCore.utils.messages.MessageUtils.colorize;
+
 
     public class ItemBuilder {
         private final ItemStack itemStack;
         private final ItemMeta meta;
+        private final DebugablePlugin callerPlugin;
 
-        private ItemBuilder(Material material) {
+        private ItemBuilder(Material material, DebugablePlugin callerPlugin) {
             this.itemStack = new ItemStack(material);
             this.meta = itemStack.getItemMeta();
+            this.callerPlugin = callerPlugin;
+
         }
 
-        public static ItemBuilder of(Material material) {
-            return new ItemBuilder(material);
+        public static ItemBuilder of(Material material, DebugablePlugin debugablePlugin) {
+            return new ItemBuilder(material, debugablePlugin);
         }
 
-        public static ItemBuilder head(){
-            return new ItemBuilder(Material.PLAYER_HEAD);
+        public static ItemBuilder head(DebugablePlugin debugablePlugin){
+            return new ItemBuilder(Material.PLAYER_HEAD, debugablePlugin);
         }
 
-        public static ItemBuilder fromConfigurationSection(@Nullable ConfigurationSection section, @Nullable PlaceholderReplacer placeholderReplacer){
+        public static ItemBuilder fromConfigurationSection(@Nullable ConfigurationSection section, @Nullable PlaceholderReplacer placeholderReplacer, DebugablePlugin debugablePlugin){
             if(section == null){
-                WarnLogger.debug("%p% &ctried to build invalid item, was replaced by a stone");
-                return of(Material.STONE).name("&cINVALID ITEM");
+                WarnLogger.debug(debugablePlugin, "&ctried to build invalid item, was replaced by a stone");
+                return of(Material.STONE, debugablePlugin).name("&cINVALID ITEM");
             }
             if(placeholderReplacer == null) placeholderReplacer = new EmptyItemPlaceholderReplacer();
 
 
             Material material = EnumUtils.getEnum(Material.class, section.getString("material"));
             if(material == null){
-                WarnLogger.debug("%p% &cinvalid material " + section.getString("material") + " temporary replaced to stone.");
+                WarnLogger.debug(debugablePlugin, "&cinvalid material " + section.getString("material") + " temporary replaced to stone.");
                 material = Material.STONE;
             }
 
@@ -63,7 +73,7 @@
             int customModelData = section.getInt("model_data");
             List<String> rawLore = section.getStringList("lore");
 
-            ItemBuilder builder = of(material)
+            ItemBuilder builder = of(material, debugablePlugin)
                     .name(name)
                     .customModelData(customModelData)
                     .addLore(placeholderReplacer.replaceList(rawLore));
@@ -87,7 +97,7 @@
             URL skinUrl = extractSkinUrl(base64);
 
             if (skinUrl == null) {
-                WarnLogger.debug("%p% &7skull value is invalid: &c\"" + base64 + " \"&e. No texture was applied.");
+                WarnLogger.debug(callerPlugin, "&7skull value is invalid: &c\"" + base64 + " \"&e. No texture was applied.");
                 return this;
             }
 
@@ -95,7 +105,12 @@
                 throw new IllegalStateException("ItemMeta is not instance of SkullMeta");
             }
 
-            PlayerProfile profile = UNO.getInstance().getServer().createProfile(UUID.randomUUID());
+            if(!(callerPlugin instanceof JavaPlugin javaPlugin)){
+                WarnLogger.debug(callerPlugin, "&7plugin " + callerPlugin.getPrefix() + " &7is not a java plugin. No custom head applied. &c&lREPORT THIS&7.");
+                return this;
+            }
+
+            PlayerProfile profile = javaPlugin.getServer().createProfile(UUID.randomUUID());
             PlayerTextures textures = profile.getTextures();
             textures.setSkin(skinUrl);
             profile.setTextures(textures);
@@ -169,25 +184,6 @@
                 addLine(s);
             }
             return this;
-        }
-
-
-        public static ItemStack getCustomSkull(String base64Texture) {
-            URL skinUrl = extractSkinUrl(base64Texture);
-            if (skinUrl == null) return new ItemStack(Material.PLAYER_HEAD); // fallback
-
-            ItemStack head = new ItemStack(Material.PLAYER_HEAD);
-            SkullMeta meta = (SkullMeta) head.getItemMeta();
-
-            PlayerProfile profile = UNO.getInstance().getServer().createProfile(UUID.randomUUID());
-            PlayerTextures textures = profile.getTextures();
-            textures.setSkin(skinUrl);
-            profile.setTextures(textures);
-
-            meta.setPlayerProfile(profile);
-            head.setItemMeta(meta);
-
-            return head;
         }
 
         private static URL extractSkinUrl(String base64Texture) {

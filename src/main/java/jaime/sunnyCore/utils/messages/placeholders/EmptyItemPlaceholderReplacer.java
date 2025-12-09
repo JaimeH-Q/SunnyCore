@@ -1,7 +1,6 @@
-package jaime.uno.utils.placeholders;
+package jaime.sunnyCore.utils.messages.placeholders;
 
 import java.util.List;
-import java.util.Map;
 
 public class EmptyItemPlaceholderReplacer implements PlaceholderReplacer {
 

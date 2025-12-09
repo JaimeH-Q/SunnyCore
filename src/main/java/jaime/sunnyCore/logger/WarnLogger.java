@@ -1,5 +1,7 @@
-package jaime.sunnyCore;
+package jaime.sunnyCore.logger;
 
+
+import jaime.sunnyCore.SunnyCore;
 
 import static jaime.sunnyCore.utils.messages.MessageUtils.colorize;
 
@@ -20,26 +22,25 @@ public class WarnLogger {
      * Logs a message, whether debug is active or not
      * @param message
      */
-    public static void log(String message){
+    public static void log(DebugablePlugin debuggerPlugin, String message){
         if (plugin == null) {
             throw new IllegalStateException("UNO: Warnlogger wasn't prepared yet!");
         }
 
-        plugin.getServer().getConsoleSender().sendMessage(colorize(replaceHolders("%p%" + message.replace("%p%", ""))));
+        plugin.getServer().getConsoleSender().sendMessage(colorize(replaceHolders(debuggerPlugin, "%p%" + message)));
     }
 
-    public static void debug(String message){
+    public static void debug(DebugablePlugin debuggerPlugin, String message){
         if (plugin == null) {
             throw new IllegalStateException("UNO: Warnlogger wasn't prepared yet!");
         }
-
-        if(!plugin.isDebug()) return;
-        plugin.getServer().getConsoleSender().sendMessage(colorize(replaceHolders("%p%" + message.replace("%p%", ""))));
+        if(!debuggerPlugin.isDebug()) return;
+        plugin.getServer().getConsoleSender().sendMessage(colorize(replaceHolders(debuggerPlugin, "%p%" + message)));
     }
 
 
-    private static String replaceHolders(String message){
+    private static String replaceHolders(DebugablePlugin debuggerPlugin, String message){
         return message
-                .replace("%p%", "&#ffc540&lU&#feaa39&lN&#fd8e31&lO &8>&7 ");
+                .replace("%p%", "&8[&#ffb82a&lS&#4ad1fd&lC&8] " + debuggerPlugin.getPrefix());
     }
 }
